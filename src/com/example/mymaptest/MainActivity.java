@@ -1,5 +1,6 @@
 package com.example.mymaptest;
 
+
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
@@ -30,6 +31,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -118,8 +120,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 			public void onClick(View v) {
 				mPoiSearch.searchInCity((new PoiCitySearchOption())
 						.city(et_City.getText().toString())
-						.keyword(et_SearchKey.getText().toString())
-						);
+						.keyword(et_SearchKey.getText().toString()));
 			}
 			
 		});
@@ -154,6 +155,8 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		et_City = (EditText) findViewById(R.id.city);
 		et_SearchKey = (EditText) findViewById(R.id.searchkey);
 		btn_search = (Button) findViewById(R.id.btn_search);
+		et_City.setText("天津");
+		et_SearchKey.setText("普天和");
 	}
 	/*********************************************************************/
 	/*********************************************************************/
@@ -163,7 +166,15 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	/*********************************************************************/
 	/*PoiSearch******OnGetPoiSearchResultListener*************************/
 	@Override
-	public void onGetPoiDetailResult(PoiDetailResult arg0) {
+	//点击相应红色的目标，弹窗显示具体的信息
+	public void onGetPoiDetailResult(PoiDetailResult result) {
+		if (result.error != SearchResult.ERRORNO.NO_ERROR) {
+			Toast.makeText(MainActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT)
+					.show();
+		} else {
+			Toast.makeText(MainActivity.this, result.getName() + ":" + result.getAddress(), Toast.LENGTH_SHORT)
+			.show();
+		}
 	}
 	@Override
 	public void onGetPoiResult(PoiResult result) {
@@ -177,6 +188,8 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 			mBaiduMap.clear();
 			PoiOverlay overlay = new MyPoiOverlay(mBaiduMap);
 			mBaiduMap.setOnMarkerClickListener(overlay);
+			Log.i("num="+result.getCurrentPageNum(), "20151022");
+			Log.i("result="+result.getCurrentPageCapacity(), "20151022");
 			overlay.setData(result);
 			overlay.addToMap();
 			overlay.zoomToSpan();
@@ -211,10 +224,8 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		public boolean onPoiClick(int index) {
 			super.onPoiClick(index);
 			PoiInfo poi = getPoiResult().getAllPoi().get(index);
-			// if (poi.hasCaterDetails) {
-				mPoiSearch.searchPoiDetail((new PoiDetailSearchOption())
-						.poiUid(poi.uid));
-			// }
+			mPoiSearch.searchPoiDetail((new PoiDetailSearchOption())
+					.poiUid(poi.uid));
 			return true;
 		}
 	}
