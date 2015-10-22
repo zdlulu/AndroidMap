@@ -25,7 +25,11 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
+        public static final int btn_search=0x7f080004;
+        public static final int city=0x7f080002;
         public static final int id_bmapView=0x7f080000;
+        public static final int rl_contain=0x7f080001;
+        public static final int searchkey=0x7f080003;
     }
     public static final class layout {
         public static final int main=0x7f030000;
