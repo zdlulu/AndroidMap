@@ -188,8 +188,8 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 			mBaiduMap.clear();
 			PoiOverlay overlay = new MyPoiOverlay(mBaiduMap);
 			mBaiduMap.setOnMarkerClickListener(overlay);
-			Log.i("num="+result.getCurrentPageNum(), "20151022");
-			Log.i("result="+result.getCurrentPageCapacity(), "20151022");
+//			Log.i("num="+result.getCurrentPageNum(), "20151022");
+//			Log.i("result="+result.getCurrentPageCapacity(), "20151022");
 			overlay.setData(result);
 			overlay.addToMap();
 			overlay.zoomToSpan();

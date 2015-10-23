@@ -25,7 +25,11 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
+        public static final int btn_intent_navigation=0x7f080006;
+        public static final int btn_intent_search=0x7f080005;
         public static final int btn_search=0x7f080004;
+        public static final int button3=0x7f080007;
+        public static final int button4=0x7f080008;
         public static final int city=0x7f080002;
         public static final int id_bmapView=0x7f080000;
         public static final int rl_contain=0x7f080001;
@@ -33,6 +37,8 @@ public final class R {
     }
     public static final class layout {
         public static final int main=0x7f030000;
+        public static final int navigation_activity=0x7f030001;
+        public static final int search_activity=0x7f030002;
     }
     public static final class menu {
         public static final int main=0x7f070000;
