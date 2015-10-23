@@ -29,6 +29,7 @@ import com.baidu.mapapi.search.sug.SuggestionResult;
 import com.baidu.mapapi.search.sug.SuggestionSearch;
 import com.baidu.mapapi.search.sug.SuggestionSearchOption;
 import com.example.mymaptest.R;
+import com.example.search.SearchActivity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -57,7 +58,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	private Button btn_intent_search,btn_intent_navigation;
 	private PoiSearch mPoiSearch = null;
 	private SuggestionSearch mSuggestionSearch = null;
-    
+	private float zoomLevel;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -70,6 +71,9 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		
 		btn_intent_search.setOnClickListener(this);
 		btn_intent_navigation.setOnClickListener(this);
+		zoomin.setOnClickListener(this);
+		zoomout.setOnClickListener(this);
+		
 		
 		// 初始化搜索模块，注册搜索事件监听
 		mPoiSearch = PoiSearch.newInstance();
@@ -79,6 +83,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		// 地图初始化
 		mBaiduMap = bMapView.getMap();
 		hideZoomView(bMapView);
+		zoomLevel = mBaiduMap.getMapStatus().zoom;
 		// 开启定位图层
 		mBaiduMap.setMyLocationEnabled(true);
 		// 定位初始化
@@ -173,6 +178,8 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		btn_intent_search = (Button) findViewById(R.id.btn_intent_search);
 		btn_intent_navigation = (Button) findViewById(R.id.btn_intent_navigation);
 		mCurrentMode = LocationMode.NORMAL;
+//		zoomin.setShadowLayer(5, 0, 0, 0xff00ff00);   // 设置字体阴影的半径和颜色
+		zoomin.setTextAppearance(this, R.style.AppTheme);   // 设置字体的style
 	}
 	/*********************************************************************/
 	/*********************************************************************/
@@ -272,8 +279,26 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 			break;
 		case R.id.btn_intent_search:
 //			Intent intent = new Intent();
-//			intent.setClass(MainActivity.this,MySearchActivity.class);
+//			intent.setClass(MainActivity.this,SearchActivity.class);
 //			startActivityForResult(intent, 1);
+			break;
+		case R.id.zoomout:
+			if(zoomLevel<=18){
+				mBaiduMap.setMapStatus(MapStatusUpdateFactory.zoomIn());
+				zoomout.setEnabled(true);
+			}else{
+				Toast.makeText(MainActivity.this, "已经放至最大！", Toast.LENGTH_SHORT).show();
+				zoomout.setEnabled(false);
+			}
+			break;
+		case R.id.zoomin:
+			if(zoomLevel>4){
+				mBaiduMap.setMapStatus(MapStatusUpdateFactory.zoomOut());
+				zoomin.setEnabled(true);
+			}else{
+				zoomin.setEnabled(false);
+				Toast.makeText(MainActivity.this, "已经缩至最小！", Toast.LENGTH_SHORT).show();
+			}
 			break;
 		}
 	}
