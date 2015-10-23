@@ -17,7 +17,7 @@
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="IHS8kiiPCo4DI34EjwECmFEQ"/>
         <activity
-            android:name="com.example.mymaptest.MainActivity"
+            android:name="com.example.maptest.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

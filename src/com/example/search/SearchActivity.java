@@ -1,8 +1,9 @@
 package com.example.search;
 
+import com.example.mymaptest.R;
+
 import android.app.Activity;
 import android.os.Bundle;
-import com.example.mymaptest.R;
 
 public class SearchActivity extends Activity{
 	
