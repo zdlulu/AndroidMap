@@ -29,6 +29,7 @@ import com.baidu.mapapi.search.sug.SuggestionResult;
 import com.baidu.mapapi.search.sug.SuggestionSearch;
 import com.baidu.mapapi.search.sug.SuggestionSearchOption;
 import com.example.mymaptest.R;
+import com.example.navigation.NavigationActivity;
 import com.example.search.SearchActivity;
 
 import android.app.Activity;
@@ -276,11 +277,14 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	public void onClick(View v) {
 		switch(v.getId()){
 		case R.id.btn_intent_navigation:
+			Intent intent_na = new Intent();
+			intent_na.setClass(MainActivity.this,NavigationActivity.class);
+			startActivityForResult(intent_na, 1);
 			break;
 		case R.id.btn_intent_search:
-//			Intent intent = new Intent();
-//			intent.setClass(MainActivity.this,SearchActivity.class);
-//			startActivityForResult(intent, 1);
+			Intent intent_se = new Intent();
+			intent_se.setClass(MainActivity.this,SearchActivity.class);
+			startActivityForResult(intent_se, 1);
 			break;
 		case R.id.zoomout:
 			if(zoomLevel<=18){
