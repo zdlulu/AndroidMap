@@ -27,20 +27,18 @@ public final class R {
         public static final int ic_launcher=0x7f020002;
     }
     public static final class id {
-        public static final int btn_intent_navigation=0x7f080007;
-        public static final int btn_intent_search=0x7f080006;
-        public static final int btn_nav_result=0x7f08000c;
-        public static final int btn_sear_result=0x7f08000d;
-        public static final int btn_search=0x7f080004;
-        public static final int button3=0x7f080008;
-        public static final int button4=0x7f080009;
-        public static final int city=0x7f080002;
+        public static final int btn_intent_navigation=0x7f080003;
+        public static final int btn_intent_search=0x7f080002;
+        public static final int btn_nav_result=0x7f080008;
+        public static final int btn_sear_result=0x7f080009;
+        public static final int button3=0x7f080004;
+        public static final int button4=0x7f080005;
+        public static final int et_sear_city=0x7f08000a;
+        public static final int et_sear_key=0x7f08000b;
         public static final int id_bmapView=0x7f080000;
-        public static final int linearLayout1=0x7f080005;
-        public static final int rl_contain=0x7f080001;
-        public static final int searchkey=0x7f080003;
-        public static final int zoomin=0x7f08000a;
-        public static final int zoomout=0x7f08000b;
+        public static final int linearLayout1=0x7f080001;
+        public static final int zoomin=0x7f080006;
+        public static final int zoomout=0x7f080007;
     }
     public static final class layout {
         public static final int main=0x7f030000;

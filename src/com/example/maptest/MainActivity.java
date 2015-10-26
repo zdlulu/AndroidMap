@@ -58,8 +58,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	LocationClient mLocClient;
 	public MyLocationListenner myListener = new MyLocationListenner();
 	boolean isFirstLoc = true;// 是否首次定位
-	EditText et_City,et_SearchKey;
-	private Button btn_search,zoomin,zoomout;
+	private Button zoomin,zoomout;
 	private Button btn_intent_search,btn_intent_navigation;
 	private PoiSearch mPoiSearch = null;
 	private SuggestionSearch mSuggestionSearch = null;
@@ -109,47 +108,6 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		mBaiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
 				mCurrentMode, true, null));
 		/*************************************************/
-		et_City.addTextChangedListener(new TextWatcher() {
-
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				
-			}
-
-			@Override
-			public void onTextChanged(CharSequence cs, int arg1, int arg2,
-					int arg3) {
-				if (cs.length() <= 0) {
-					return;
-				}
-				String city = ((EditText) findViewById(R.id.city)).getText()
-						.toString();
-				/**
-				 * 使用建议搜索服务获取建议列表，结果在onSuggestionResult()中更新
-				 */
-				mSuggestionSearch
-						.requestSuggestion((new SuggestionSearchOption())
-								.keyword(cs.toString()).city(city));
-			}
-
-			@Override
-			public void afterTextChanged(Editable s) {
-				
-			}
-			
-		});
-		/*************************************************/
-		btn_search.setOnClickListener(new OnClickListener(){
-
-			@Override
-			public void onClick(View v) {
-				mPoiSearch.searchInCity((new PoiCitySearchOption())
-						.city(et_City.getText().toString())
-						.keyword(et_SearchKey.getText().toString()));
-			}
-			
-		});
 	}
 	
 	/* 定位SDK监听函数**************************************************/
@@ -179,13 +137,8 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	/*********************************************************************/
 	public void init_widget(){
 		bMapView=(MapView)findViewById(R.id.id_bmapView);//找到控件视图  
-		et_City = (EditText) findViewById(R.id.city);
-		et_SearchKey = (EditText) findViewById(R.id.searchkey);
-		btn_search = (Button) findViewById(R.id.btn_search);
 		zoomin = (Button) findViewById(R.id.zoomin);
 		zoomout = (Button) findViewById(R.id.zoomout);
-		et_City.setText("天津");
-		et_SearchKey.setText("普天和");
 		btn_intent_search = (Button) findViewById(R.id.btn_intent_search);
 		btn_intent_navigation = (Button) findViewById(R.id.btn_intent_navigation);
 		mCurrentMode = LocationMode.NORMAL;
@@ -322,9 +275,9 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
         public void handleMessage(Message msg) {  
             super.handleMessage(msg);  
             switch(msg.what){
-            case 0x03:
-            	Log.i("0x03", "20151026");
-            	btn_search.setBackgroundColor(Color.YELLOW);
+            case Messages.MSG1:
+            	String[] str = (String[]) msg.obj;
+            	mPoiSearch.searchInCity((new PoiCitySearchOption()).city(str[0]).keyword(str[1]));
             	break;
             }
         }  
