@@ -28,11 +28,11 @@ public final class R {
         public static final int ic_launcher=0x7f020003;
     }
     public static final class id {
+        public static final int  btn_nav_transit=0x7f08000e;
         public static final int btn_intent_navigation=0x7f080003;
         public static final int btn_intent_search=0x7f080002;
-        public static final int btn_nav_drive=0x7f08000e;
+        public static final int btn_nav_drive=0x7f08000f;
         public static final int btn_nav_result=0x7f080008;
-        public static final int btn_nav_transit=0x7f08000f;
         public static final int btn_nav_walk=0x7f080010;
         public static final int btn_sear_back=0x7f080011;
         public static final int btn_sear_result=0x7f080014;
