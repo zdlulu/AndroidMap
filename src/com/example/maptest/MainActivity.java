@@ -34,9 +34,13 @@ import com.example.search.SearchActivity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -60,6 +64,9 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	private PoiSearch mPoiSearch = null;
 	private SuggestionSearch mSuggestionSearch = null;
 	private float zoomLevel;
+	private MyHandler handler = null;  
+    private MyApp mAPP = null;  
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -68,6 +75,9 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		requestWindowFeature(Window.FEATURE_NO_TITLE); 
 		SDKInitializer.initialize(getApplicationContext()); 
 		setContentView(R.layout.main);
+		mAPP = (MyApp) getApplication();  
+        handler = new MyHandler();  
+        mAPP.setHandler(handler); 
 		init_widget();
 		
 		btn_intent_search.setOnClickListener(this);
@@ -306,4 +316,19 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 			break;
 		}
 	}
+	/*********************************************************************/
+	public class MyHandler extends Handler {  
+        @Override  
+        public void handleMessage(Message msg) {  
+            super.handleMessage(msg);  
+            switch(msg.what){
+            case 0x03:
+            	Log.i("0x03", "20151026");
+            	btn_search.setBackgroundColor(Color.YELLOW);
+            	break;
+            }
+        }  
+    }  
+	/*********************************************************************/
+	/*********************************************************************/
 }
