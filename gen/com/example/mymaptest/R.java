@@ -30,7 +30,8 @@ public final class R {
         public static final int btn_intent_navigation=0x7f080003;
         public static final int btn_intent_search=0x7f080002;
         public static final int btn_nav_result=0x7f080008;
-        public static final int btn_sear_result=0x7f080009;
+        public static final int btn_sear_back=0x7f080009;
+        public static final int btn_sear_result=0x7f08000c;
         public static final int button3=0x7f080004;
         public static final int button4=0x7f080005;
         public static final int et_sear_city=0x7f08000a;

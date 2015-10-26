@@ -90,6 +90,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		mPoiSearch.setOnGetPoiSearchResultListener(this);
 		mSuggestionSearch = SuggestionSearch.newInstance();
 		mSuggestionSearch.setOnGetSuggestionResultListener(this);
+
 		// µÿÕº≥ı ºªØ
 		mBaiduMap = bMapView.getMap();
 		hideZoomView(bMapView);
@@ -210,6 +211,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 		@Override
 		public boolean onPoiClick(int index) {
 			super.onPoiClick(index);
+			Log.i("result="+getPoiResult().getAllPoi().size(), "20151026");
 			PoiInfo poi = getPoiResult().getAllPoi().get(index);
 			mPoiSearch.searchPoiDetail((new PoiDetailSearchOption())
 					.poiUid(poi.uid));
@@ -277,7 +279,10 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
             switch(msg.what){
             case Messages.MSG1:
             	String[] str = (String[]) msg.obj;
-            	mPoiSearch.searchInCity((new PoiCitySearchOption()).city(str[0]).keyword(str[1]));
+            	mPoiSearch.searchInCity((new PoiCitySearchOption())
+            			.city(str[0])
+            			.keyword(str[1])
+            			.pageCapacity(15));
             	break;
             }
         }  
