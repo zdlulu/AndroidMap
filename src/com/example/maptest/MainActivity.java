@@ -283,7 +283,9 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
             			.city(str[0])
             			.keyword(str[1])
             			.pageCapacity(15));
-            	break;
+            break;
+            case Messages.MSG2:
+            break;
             }
         }  
     }  

@@ -15,7 +15,7 @@ import com.example.mymaptest.R;
 
 public class NavigationActivity extends Activity implements OnClickListener{
 	public static final String action = "jason.broadcast.NavigationActivity";  
-	Button btn_nav_result;
+	Button btn_nav_result,btn_nav_transit,btn_nav_walk,btn_nav_drive;
 	private MyApp mAPP = null;  
     private MyHandler navi_handler = null; 
 	
@@ -28,10 +28,16 @@ public class NavigationActivity extends Activity implements OnClickListener{
 		navi_handler = mAPP.getHandler();  
 		nav_init();
 		btn_nav_result.setOnClickListener(this);
+		btn_nav_walk.setOnClickListener(this);
+		btn_nav_transit.setOnClickListener(this);
+		btn_nav_drive.setOnClickListener(this);
 	}
 	
 	public void nav_init(){
 		btn_nav_result = (Button) findViewById(R.id.btn_nav_result);
+		btn_nav_walk = (Button) findViewById(R.id.btn_nav_walk);
+		btn_nav_transit = (Button) findViewById(R.id.btn_nav_transit);
+		btn_nav_drive = (Button) findViewById(R.id.btn_nav_drive);
 	}
 
 	@Override
@@ -39,12 +45,19 @@ public class NavigationActivity extends Activity implements OnClickListener{
 		switch(v.getId()){
 		case R.id.btn_nav_result:
 			Message msg = new Message();
-			msg.what = Messages.MSG1;
+			msg.what = Messages.MSG2;
 			navi_handler.sendMessage(msg);  
 			Intent intent = new Intent(action);  
             intent.putExtra("data", "yes i am data");  
             sendBroadcast(intent);  
             finish();  
+			break;
+		case R.id.btn_nav_drive:
+			break;
+		case R.id.btn_nav_transit:
+			
+			break;
+		case R.id.btn_nav_walk:
 			break;
 		}
 		
