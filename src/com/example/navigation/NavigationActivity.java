@@ -14,7 +14,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.RouteNode;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
@@ -34,7 +37,8 @@ import com.example.mymaptest.R;
 public class NavigationActivity extends Activity implements OnClickListener,
 					OnGetRoutePlanResultListener{
 	public static final String action = "jason.broadcast.NavigationActivity";  
-	Button btn_nav_result,btn_nav_transit,btn_nav_walk,btn_nav_drive;
+	private Button btn_nav_result,btn_nav_transit,btn_nav_walk,btn_nav_drive;
+	private TextView tv_line;
 	private MyApp mAPP = null;  
     private MyHandler navi_handler = null; 
     //搜索相关
@@ -44,7 +48,9 @@ public class NavigationActivity extends Activity implements OnClickListener,
     ArrayList<TransitStep> steps =null;
     ArrayList<Integer>MultiChoiceID = new ArrayList<Integer>();  
     public String[] nItems = null;
-    public boolean[] nItems_boolean= null;
+    private String line_nitem="";
+    RouteLine[] route = null;
+    RouteLine choose_route = null;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +79,8 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		btn_nav_transit = (Button) findViewById(R.id.btn_nav_transit);
 		btn_nav_drive = (Button) findViewById(R.id.btn_nav_drive);
 		et_nav_origin = (EditText) findViewById(R.id.et_nav_origin);;
-		et_nav_destination = (EditText) findViewById(R.id.et_nav_destination);;
+		et_nav_destination = (EditText) findViewById(R.id.et_nav_destination);
+		tv_line = (TextView) findViewById(R.id.tv_line);
 	}
 
 	@Override
@@ -122,31 +129,20 @@ public class NavigationActivity extends Activity implements OnClickListener,
         	int line_size = transit_result.getRouteLines().size();
         	String line_str = "",step_str="";
         	nItems = new String[line_size];
-        	nItems_boolean = new boolean[line_size];
+        	route = new RouteLine[line_size];
         	for(int i=0;i<line_size;i++){
-        		TransitRouteLine line = transit_result.getRouteLines().get(i);
-        		steps = (ArrayList<TransitStep>) line.getAllStep(); 
+        		route[i] = transit_result.getRouteLines().get(i);
+        		steps = (ArrayList<TransitStep>) route[i].getAllStep(); 
         		for (TransitStep step : steps) {
         			line_str = line_str+step.getInstructions();
 //        			Log.i("line_str=","i="+line);
         		}
         		step_str = step_str+String.valueOf(i)+line_str+"\n";
         		nItems[i] = String.valueOf(i)+line_str;
-        		nItems_boolean[i] = false;
         		Log.i("line_str","="+String.valueOf(i)+line_str);
-        		
         		line_str = "";
         	}
         	get_item();
-//        	// 通过AlertDialog显示所有搜索到的POI  
-//            new AlertDialog.Builder(NavigationActivity.this)  
-//            .setTitle("搜索到的POI信息")  
-//            .setMessage(step_str)  
-//            .setPositiveButton("关闭", new DialogInterface.OnClickListener() {  
-//                public void onClick(DialogInterface dialog, int whichButton) {  
-//                    dialog.dismiss();  
-//                }  
-//            }).create().show();  
         }
 	}
 	@Override
@@ -159,30 +155,30 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		MultiChoiceID.clear();  
 		builder.setIcon(R.drawable.back);
         builder.setTitle("多项选择");
-        builder.setMultiChoiceItems(nItems,nItems_boolean,
-        		new DialogInterface.OnMultiChoiceClickListener(){
+        builder.setSingleChoiceItems(nItems, 1,  new DialogInterface. OnClickListener(){
 
-					@Override
-					public void onClick(DialogInterface arg0, int arg1, boolean arg2) {
-						if (arg2) {
-		        			MultiChoiceID.add(arg1);
-		        			String tip = "你选的是："+nItems[arg1];  
-		                    Toast toast = Toast.makeText(getApplicationContext(), tip, Toast.LENGTH_SHORT);  
-		                    toast.show();
-		        		}else {
-		        			MultiChoiceID.remove(arg1);
-		        			}
-		        		}
-					});
-        //设置确定按钮  
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
+				line_nitem = nItems[which];
+				choose_route = route[which];
+				Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
+			}});
+        //设置确定按钮  
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				tv_line.setText(line_nitem);
+				Message msg = new Message();
+				msg.obj = choose_route;
+				msg.what = Messages.MSG3;
+				navi_handler.sendMessage(msg);  
 			}
         	
         });
-      //设置取消按钮  
+        //设置取消按钮  
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {  
+              
             @Override  
             public void onClick(DialogInterface arg0, int arg1) {  
                   

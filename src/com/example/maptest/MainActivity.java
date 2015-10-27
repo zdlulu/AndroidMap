@@ -1,12 +1,13 @@
 package com.example.maptest;
 
-
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
@@ -14,9 +15,12 @@ import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.MyLocationConfiguration.LocationMode;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.overlayutil.OverlayManager;
 import com.baidu.mapapi.overlayutil.PoiOverlay;
+import com.baidu.mapapi.overlayutil.TransitRouteOverlay;
 import com.baidu.mapapi.search.core.CityInfo;
 import com.baidu.mapapi.search.core.PoiInfo;
+import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
 import com.baidu.mapapi.search.poi.PoiCitySearchOption;
@@ -24,6 +28,7 @@ import com.baidu.mapapi.search.poi.PoiDetailResult;
 import com.baidu.mapapi.search.poi.PoiDetailSearchOption;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
+import com.baidu.mapapi.search.route.TransitRouteLine;
 import com.baidu.mapapi.search.sug.OnGetSuggestionResultListener;
 import com.baidu.mapapi.search.sug.SuggestionResult;
 import com.baidu.mapapi.search.sug.SuggestionSearch;
@@ -65,7 +70,9 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	private float zoomLevel;
 	private MyHandler handler = null;  
     private MyApp mAPP = null;  
-	
+    boolean useDefaultIcon = false;
+    OverlayManager routeOverlay = null;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -278,17 +285,47 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
             super.handleMessage(msg);  
             switch(msg.what){
             case Messages.MSG1:
+            	//在城市中使用关键词进行搜索而显示的结果
             	String[] str = (String[]) msg.obj;
             	mPoiSearch.searchInCity((new PoiCitySearchOption())
             			.city(str[0])
             			.keyword(str[1])
             			.pageCapacity(15));
             break;
-            case Messages.MSG2:
+            case Messages.MSG3:
+            	RouteLine rl = (RouteLine) msg.obj;
+            	TransitRouteOverlay overlay = new MyTransitRouteOverlay(mBaiduMap);
+            	mBaiduMap.setOnMarkerClickListener(overlay);
+                routeOverlay = overlay;
+                overlay.setData((TransitRouteLine) rl);
+                overlay.addToMap();
+                overlay.zoomToSpan();
             break;
             }
         }  
     }  
 	/*********************************************************************/
+	 private class MyTransitRouteOverlay extends TransitRouteOverlay {
+
+	        public MyTransitRouteOverlay(BaiduMap baiduMap) {
+	            super(baiduMap);
+	        }
+
+	        @Override
+	        public BitmapDescriptor getStartMarker() {
+	            if (useDefaultIcon) {
+//	                return BitmapDescriptorFactory.fromResource(R.drawable.icon_st);
+	            }
+	            return null;
+	        }
+
+	        @Override
+	        public BitmapDescriptor getTerminalMarker() {
+	            if (useDefaultIcon) {
+//	                return BitmapDescriptorFactory.fromResource(R.drawable.icon_en);
+	            }
+	            return null;
+	        }
+	    }
 	/*********************************************************************/
 }
