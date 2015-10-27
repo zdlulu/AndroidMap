@@ -1,6 +1,8 @@
 package com.example.navigation;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -15,12 +17,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.baidu.mapapi.search.core.CityInfo;
+import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.route.DrivingRoutePlanOption;
+import com.baidu.mapapi.search.route.DrivingRoutePlanOption.DrivingTrafficPolicy;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
 import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
 import com.baidu.mapapi.search.route.PlanNode;
 import com.baidu.mapapi.search.route.RoutePlanSearch;
+import com.baidu.mapapi.search.route.SuggestAddrInfo;
 import com.baidu.mapapi.search.route.TransitRouteLine.TransitStep;
 import com.baidu.mapapi.search.route.TransitRoutePlanOption;
 import com.baidu.mapapi.search.route.TransitRouteResult;
@@ -69,8 +77,6 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		// 初始化搜索模块，注册事件监听
         mSearch = RoutePlanSearch.newInstance();
         mSearch.setOnGetRoutePlanResultListener(this);
-//		stNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_origin.getText().toString());
-//		enNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_destination.getText().toString());
 	}
 	
 	public void nav_init(){
@@ -81,10 +87,14 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		et_nav_origin = (EditText) findViewById(R.id.et_nav_origin);;
 		et_nav_destination = (EditText) findViewById(R.id.et_nav_destination);
 		tv_line = (TextView) findViewById(R.id.tv_line);
+		et_nav_origin.setText("金刚桥");
+		et_nav_destination.setText("滨江道");
 	}
 
 	@Override
 	public void onClick(View v) {
+		stNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_origin.getText().toString());
+		enNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_destination.getText().toString());
 		switch(v.getId()){
 		case R.id.btn_nav_result:
 			//返回地图
@@ -97,12 +107,12 @@ public class NavigationActivity extends Activity implements OnClickListener,
             finish();  
 			break;
 		case R.id.btn_nav_drive:
+			//驾车信息
+			mSearch.drivingSearch((new DrivingRoutePlanOption())
+                    .from(stNode)
+                    .to(enNode));
 			break;
 		case R.id.btn_nav_transit:
-			et_nav_origin.setText("金刚桥");
-			et_nav_destination.setText("滨江道");
-			stNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_origin.getText().toString());
-			enNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_destination.getText().toString());
 			//公交信息
 			mSearch.transitSearch((new TransitRoutePlanOption())
                     .from(stNode)
@@ -119,6 +129,22 @@ public class NavigationActivity extends Activity implements OnClickListener,
 	@Override
 	public void onGetDrivingRouteResult(DrivingRouteResult drive_result) {
 		
+		if (drive_result == null || drive_result.error != SearchResult.ERRORNO.NO_ERROR) {
+			Toast.makeText(NavigationActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
+		}
+		if (drive_result.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
+			//起终点或途经点地址有岐义，通过以下接口获取建议查询信息
+			SuggestAddrInfo mysuggest = drive_result.getSuggestAddrInfo();
+            List<PoiInfo> list = mysuggest.getSuggestStartNode();
+            int size = mysuggest.getSuggestStartNode().size();
+            for(int i=0;i<size;i++){
+            	Log.i("="+list.get(i).toString(), "20151027");
+            }
+			return;
+	    }
+		if (drive_result.error == SearchResult.ERRORNO.NO_ERROR) {
+			Log.i("onGetDrivingRouteResult", "20151027");
+		}
 	}
 	@Override
 	public void onGetTransitRouteResult(TransitRouteResult transit_result) {
