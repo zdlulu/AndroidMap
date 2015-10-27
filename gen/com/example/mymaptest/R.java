@@ -22,10 +22,11 @@ public final class R {
         public static final int activity_vertical_margin=0x7f040001;
     }
     public static final class drawable {
-        public static final int button_down=0x7f020000;
-        public static final int button_on=0x7f020001;
-        public static final int button_style=0x7f020002;
-        public static final int ic_launcher=0x7f020003;
+        public static final int back=0x7f020000;
+        public static final int button_down=0x7f020001;
+        public static final int button_on=0x7f020002;
+        public static final int button_style=0x7f020003;
+        public static final int ic_launcher=0x7f020004;
     }
     public static final class id {
         public static final int  btn_nav_transit=0x7f08000e;
@@ -88,5 +89,6 @@ public final class R {
  All customizations that are NOT specific to a particular API-level can go here. 
          */
         public static final int AppTheme=0x7f060001;
+        public static final int dialog=0x7f060002;
     }
 }

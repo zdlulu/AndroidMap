@@ -15,8 +15,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.RouteNode;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
@@ -32,7 +30,6 @@ import com.example.maptest.Messages;
 import com.example.maptest.MyApp;
 import com.example.maptest.MainActivity.MyHandler;
 import com.example.mymaptest.R;
-import com.example.search.SearchActivity;
 
 public class NavigationActivity extends Activity implements OnClickListener,
 					OnGetRoutePlanResultListener{
@@ -45,6 +42,9 @@ public class NavigationActivity extends Activity implements OnClickListener,
     PlanNode stNode,enNode;
     private EditText et_nav_origin,et_nav_destination;
     ArrayList<TransitStep> steps =null;
+    ArrayList<Integer>MultiChoiceID = new ArrayList<Integer>();  
+    public String[] nItems = null;
+    public boolean[] nItems_boolean= null;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -120,33 +120,75 @@ public class NavigationActivity extends Activity implements OnClickListener,
         }
         if (transit_result.error == SearchResult.ERRORNO.NO_ERROR) {
         	int line_size = transit_result.getRouteLines().size();
-        	String line_str = "";
+        	String line_str = "",step_str="";
+        	nItems = new String[line_size];
+        	nItems_boolean = new boolean[line_size];
         	for(int i=0;i<line_size;i++){
         		TransitRouteLine line = transit_result.getRouteLines().get(i);
-        		RouteNode start = line.getStarting();
-        		RouteNode end = line.getTerminal();
         		steps = (ArrayList<TransitStep>) line.getAllStep(); 
-        		line_str = line_str+String.valueOf(i);
         		for (TransitStep step : steps) {
-        			line_str = line_str+step.getInstructions()+"\n";
-//        			Log.i(""+step.getInstructions(),"20151026");
+        			line_str = line_str+step.getInstructions();
+//        			Log.i("line_str=","i="+line);
         		}
+        		step_str = step_str+String.valueOf(i)+line_str+"\n";
+        		nItems[i] = String.valueOf(i)+line_str;
+        		nItems_boolean[i] = false;
+        		Log.i("line_str","="+String.valueOf(i)+line_str);
         		
+        		line_str = "";
         	}
-        	// 通过AlertDialog显示所有搜索到的POI  
-            new AlertDialog.Builder(NavigationActivity.this)  
-            .setTitle("搜索到的POI信息")  
-            .setMessage(line_str)  
-            .setPositiveButton("关闭", new DialogInterface.OnClickListener() {  
-                public void onClick(DialogInterface dialog, int whichButton) {  
-                    dialog.dismiss();  
-                }  
-            }).create().show();  
+        	get_item();
+//        	// 通过AlertDialog显示所有搜索到的POI  
+//            new AlertDialog.Builder(NavigationActivity.this)  
+//            .setTitle("搜索到的POI信息")  
+//            .setMessage(step_str)  
+//            .setPositiveButton("关闭", new DialogInterface.OnClickListener() {  
+//                public void onClick(DialogInterface dialog, int whichButton) {  
+//                    dialog.dismiss();  
+//                }  
+//            }).create().show();  
         }
 	}
 	@Override
 	public void onGetWalkingRouteResult(WalkingRouteResult walk_result) {
 		
+	}
+	/*************************************************************/
+	public void get_item(){
+		AlertDialog.Builder builder = new AlertDialog.Builder(NavigationActivity.this,R.style.dialog);
+		MultiChoiceID.clear();  
+		builder.setIcon(R.drawable.back);
+        builder.setTitle("多项选择");
+        builder.setMultiChoiceItems(nItems,nItems_boolean,
+        		new DialogInterface.OnMultiChoiceClickListener(){
+
+					@Override
+					public void onClick(DialogInterface arg0, int arg1, boolean arg2) {
+						if (arg2) {
+		        			MultiChoiceID.add(arg1);
+		        			String tip = "你选的是："+nItems[arg1];  
+		                    Toast toast = Toast.makeText(getApplicationContext(), tip, Toast.LENGTH_SHORT);  
+		                    toast.show();
+		        		}else {
+		        			MultiChoiceID.remove(arg1);
+		        			}
+		        		}
+					});
+        //设置确定按钮  
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+			}
+        	
+        });
+      //设置取消按钮  
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {  
+            @Override  
+            public void onClick(DialogInterface arg0, int arg1) {  
+                  
+            }  
+        });  
+        builder.create().show();
 	}
 	/*************************************************************/
 }
