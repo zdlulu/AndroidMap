@@ -297,6 +297,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
             			.pageCapacity(15));
             break;
             case Messages.MSG3:
+            	mBaiduMap.clear();
             	RouteLine rl = (RouteLine) msg.obj;
             	TransitRouteOverlay overlay = new MyTransitRouteOverlay(mBaiduMap);
             	mBaiduMap.setOnMarkerClickListener(overlay);

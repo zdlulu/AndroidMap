@@ -28,7 +28,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:text="雅安西里" >
+            android:text="" >
 
             <requestFocus />
         </EditText>
@@ -54,7 +54,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:text="滨江道" />
+            android:text="" />
     </LinearLayout>
 
     <LinearLayout

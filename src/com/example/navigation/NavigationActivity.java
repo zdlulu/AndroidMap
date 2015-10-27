@@ -49,6 +49,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
     RouteLine[] route = null;
     RouteLine choose_route = null;
     DBHelper db;
+    private int line_size=0;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +69,8 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		// 初始化搜索模块，注册事件监听
         mSearch = RoutePlanSearch.newInstance();
         mSearch.setOnGetRoutePlanResultListener(this);
-		stNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_origin.getText().toString());
-		enNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_destination.getText().toString());
+//		stNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_origin.getText().toString());
+//		enNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_destination.getText().toString());
 	}
 	
 	public void nav_init(){
@@ -98,6 +99,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		case R.id.btn_nav_drive:
 			break;
 		case R.id.btn_nav_transit:
+			et_nav_origin.setText("金刚桥");
+			et_nav_destination.setText("滨江道");
+			stNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_origin.getText().toString());
+			enNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_destination.getText().toString());
 			//公交信息
 			mSearch.transitSearch((new TransitRoutePlanOption())
                     .from(stNode)
@@ -127,7 +132,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
             return;
         }
         if (transit_result.error == SearchResult.ERRORNO.NO_ERROR) {
-        	int line_size = transit_result.getRouteLines().size();
+        	line_size = transit_result.getRouteLines().size();
         	String line_str = "",step_str="";
         	nItems = new String[line_size];
         	route = new RouteLine[line_size];
@@ -136,7 +141,6 @@ public class NavigationActivity extends Activity implements OnClickListener,
         		steps = (ArrayList<TransitStep>) route[i].getAllStep(); 
         		for (TransitStep step : steps) {
         			line_str = line_str+step.getInstructions();
-//        			Log.i("line_str=","i="+line);
         		}
         		step_str = step_str+String.valueOf(i)+line_str+"\n";
         		nItems[i] = String.valueOf(i)+line_str;
@@ -169,9 +173,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				mAPP.setFlag(true);
-				db.delete("1");
 				tv_line.setText(line_nitem);
+				for(int i=1;i<line_size;i++){
+					db.delete(String.valueOf(i));
+				}
 				db.save(line_nitem);
 				Message msg = new Message();
 				msg.obj = choose_route;
@@ -205,19 +210,15 @@ public class NavigationActivity extends Activity implements OnClickListener,
     @Override
     protected void onResume() {
         super.onResume();
-        if(mAPP.getFlag()){
           Cursor cur = db.loadAll();   
           StringBuffer sf = new StringBuffer();   
           cur.moveToFirst();   
-//          while (!cur.isAfterLast()) {   
+          while (!cur.isAfterLast()) {   
               sf.append(cur.getString(1)).append("\n");   
               cur.moveToNext();   
-//          }  
+          }    
+          cur.moveToNext();  
           tv_line.setText(sf.toString());
-        }else{
-        	db.delete("0");
-        }
-
     }
 
     /*************************************************************/
