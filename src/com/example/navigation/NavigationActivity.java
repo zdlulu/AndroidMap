@@ -1,12 +1,11 @@
 package com.example.navigation;
 
 import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
@@ -16,19 +15,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.baidu.mapapi.search.core.RouteLine;
-import com.baidu.mapapi.search.core.RouteNode;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
 import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
 import com.baidu.mapapi.search.route.PlanNode;
 import com.baidu.mapapi.search.route.RoutePlanSearch;
-import com.baidu.mapapi.search.route.TransitRouteLine;
 import com.baidu.mapapi.search.route.TransitRouteLine.TransitStep;
 import com.baidu.mapapi.search.route.TransitRoutePlanOption;
 import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
+import com.example.maptest.DBHelper;
 import com.example.maptest.Messages;
 import com.example.maptest.MyApp;
 import com.example.maptest.MainActivity.MyHandler;
@@ -51,6 +48,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
     private String line_nitem="";
     RouteLine[] route = null;
     RouteLine choose_route = null;
+    DBHelper db;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +58,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		// 获得该共享变量实例  
 		navi_handler = mAPP.getHandler();  
 		nav_init();
+		db = new DBHelper(this);   
 		
 		btn_nav_result.setOnClickListener(this);
 		btn_nav_walk.setOnClickListener(this);
@@ -87,6 +86,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 	public void onClick(View v) {
 		switch(v.getId()){
 		case R.id.btn_nav_result:
+			//返回地图
 			Message msg = new Message();
 			msg.what = Messages.MSG2;
 			navi_handler.sendMessage(msg);  
@@ -98,6 +98,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		case R.id.btn_nav_drive:
 			break;
 		case R.id.btn_nav_transit:
+			//公交信息
 			mSearch.transitSearch((new TransitRoutePlanOption())
                     .from(stNode)
                     .city("天津")
@@ -168,7 +169,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
+				mAPP.setFlag(true);
+				db.delete("1");
 				tv_line.setText(line_nitem);
+				db.save(line_nitem);
 				Message msg = new Message();
 				msg.obj = choose_route;
 				msg.what = Messages.MSG3;
@@ -187,4 +191,34 @@ public class NavigationActivity extends Activity implements OnClickListener,
         builder.create().show();
 	}
 	/*************************************************************/
+	@Override
+    protected void onPause() {
+        super.onPause();
+    }
+	
+	@Override
+    protected void onDestroy() {
+        super.onPause();
+        
+    }
+	
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mAPP.getFlag()){
+          Cursor cur = db.loadAll();   
+          StringBuffer sf = new StringBuffer();   
+          cur.moveToFirst();   
+//          while (!cur.isAfterLast()) {   
+              sf.append(cur.getString(1)).append("\n");   
+              cur.moveToNext();   
+//          }  
+          tv_line.setText(sf.toString());
+        }else{
+        	db.delete("0");
+        }
+
+    }
+
+    /*************************************************************/
 }

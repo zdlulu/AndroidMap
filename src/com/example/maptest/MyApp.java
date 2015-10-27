@@ -7,7 +7,8 @@ import android.app.Application;
 public class MyApp extends Application{
 	
 	// 共享变量  
-    private MyHandler handler = null;  
+    private MyHandler handler = null;
+    private boolean flag = false;
       
     // set方法  
     public void setHandler(MyHandler handler) {  
@@ -17,6 +18,15 @@ public class MyApp extends Application{
     // get方法  
     public MyHandler getHandler() {  
         return handler;  
-    }  
+    } 
+    
+    public void setFlag(boolean flag){
+    	this.flag = flag;
+    }
+    public boolean getFlag(){
+    	return flag;
+    }
+    
+    
     
 }

@@ -249,16 +249,19 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	public void onClick(View v) {
 		switch(v.getId()){
 		case R.id.btn_intent_navigation:
+			//路线信息
 			Intent intent_na = new Intent();
 			intent_na.setClass(MainActivity.this,NavigationActivity.class);
 			startActivityForResult(intent_na, 1);
 			break;
 		case R.id.btn_intent_search:
+			//关键词寻找
 			Intent intent_se = new Intent();
 			intent_se.setClass(MainActivity.this,SearchActivity.class);
 			startActivityForResult(intent_se, 1);
 			break;
 		case R.id.zoomout:
+			//缩放按钮
 			if(zoomLevel<=18){
 				mBaiduMap.setMapStatus(MapStatusUpdateFactory.zoomIn());
 				zoomout.setEnabled(true);
@@ -268,6 +271,7 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 			}
 			break;
 		case R.id.zoomin:
+			//缩放按钮
 			if(zoomLevel>4){
 				mBaiduMap.setMapStatus(MapStatusUpdateFactory.zoomOut());
 				zoomin.setEnabled(true);
@@ -328,4 +332,9 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	        }
 	    }
 	/*********************************************************************/
+	 @Override
+	 protected void onDestroy() {
+		 super.onDestroy();
+	 }
+	 /*********************************************************************/
 }
