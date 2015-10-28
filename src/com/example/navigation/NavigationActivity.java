@@ -100,6 +100,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		enNode = PlanNode.withCityNameAndPlaceName("天津", et_nav_destination.getText().toString());
 		switch(v.getId()){
 		case R.id.btn_nav_result:
+			mAPP.set_flag(true);
 			//返回地图
 			Message msg = new Message();
 			msg.what = Messages.MSG2;
@@ -120,6 +121,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		case R.id.btn_nav_transit:
 			//公交信息
 			represent_int = 1;
+			tv_line.setText("");
 			mSearch.transitSearch((new TransitRoutePlanOption())
                     .from(stNode)
                     .city("天津")
@@ -276,6 +278,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					if(flag_driving){
 						flag_driving = false;
 						tv_line.setText(line_nitem);
+						for(int i=1;i<line_size;i++){
+							db.delete(String.valueOf(i));
+						}
+						db.save(line_nitem);
 						Message msg = new Message();
 						msg.obj = choose_route;
 						msg.what = Messages.MSG4;
@@ -310,7 +316,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
     @Override
     protected void onResume() {
     	super.onResume();
-    	if(represent_int==1){
+    	if(mAPP.get_flag()){
     		Cursor cur = db.loadAll();   
             StringBuffer sf = new StringBuffer();   
             cur.moveToFirst();   
@@ -321,8 +327,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
             cur.moveToNext();  
             tv_line.setText(sf.toString());
     	}
-          
+    	
     }
-
     /*************************************************************/
 }

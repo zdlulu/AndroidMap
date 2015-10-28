@@ -8,7 +8,7 @@ public class MyApp extends Application{
 	
 	// 共享变量  
     private MyHandler handler = null;
-    private int db_num= 0;
+    private boolean flag_resume=false;;
       
     // set方法  
     public void setHandler(MyHandler handler) {  
@@ -19,4 +19,11 @@ public class MyApp extends Application{
     public MyHandler getHandler() {  
         return handler;  
     } 
+    
+    public void set_flag(boolean a){
+    	this.flag_resume = a;
+    }
+    public boolean get_flag(){
+    	return flag_resume;
+    }
 }
