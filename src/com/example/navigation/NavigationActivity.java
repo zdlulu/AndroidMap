@@ -18,12 +18,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.baidu.mapapi.search.core.CityInfo;
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.DrivingRoutePlanOption;
-import com.baidu.mapapi.search.route.DrivingRoutePlanOption.DrivingTrafficPolicy;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
 import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
 import com.baidu.mapapi.search.route.PlanNode;
@@ -58,6 +56,8 @@ public class NavigationActivity extends Activity implements OnClickListener,
     RouteLine choose_route = null;
     DBHelper db;
     private int line_size=0;
+    PoiInfo poiinfo_sn,poiinfo_en;
+    private int  represent_int =0;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -107,19 +107,23 @@ public class NavigationActivity extends Activity implements OnClickListener,
             finish();  
 			break;
 		case R.id.btn_nav_drive:
-			//驾车信息
+			//驾车信息 
+			represent_int = 2;
+			tv_line.setText("");
 			mSearch.drivingSearch((new DrivingRoutePlanOption())
                     .from(stNode)
                     .to(enNode));
 			break;
 		case R.id.btn_nav_transit:
 			//公交信息
+			represent_int = 1;
 			mSearch.transitSearch((new TransitRoutePlanOption())
                     .from(stNode)
                     .city("天津")
                     .to(enNode));
 			break;
 		case R.id.btn_nav_walk:
+			represent_int = 3;
 			break;
 		}
 		
@@ -129,17 +133,21 @@ public class NavigationActivity extends Activity implements OnClickListener,
 	@Override
 	public void onGetDrivingRouteResult(DrivingRouteResult drive_result) {
 		
-		if (drive_result == null || drive_result.error != SearchResult.ERRORNO.NO_ERROR) {
+		if (drive_result == null) {
 			Toast.makeText(NavigationActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
 		}
 		if (drive_result.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
 			//起终点或途经点地址有岐义，通过以下接口获取建议查询信息
 			SuggestAddrInfo mysuggest = drive_result.getSuggestAddrInfo();
-            List<PoiInfo> list = mysuggest.getSuggestStartNode();
-            int size = mysuggest.getSuggestStartNode().size();
-            for(int i=0;i<size;i++){
-            	Log.i("="+list.get(i).toString(), "20151027");
+            List<PoiInfo> list_sn = mysuggest.getSuggestStartNode();
+            int size_sn = mysuggest.getSuggestStartNode().size();
+            nItems = new String[size_sn];
+            for(int i=0;i<size_sn;i++){
+            	poiinfo_sn = list_sn.get(i);
+            	nItems[i] = poiinfo_sn.name;
+//            	Log.i("sn="+poiinfo_sn.name, "20151027");
             }
+            get_item();
 			return;
 	    }
 		if (drive_result.error == SearchResult.ERRORNO.NO_ERROR) {
@@ -185,29 +193,37 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		AlertDialog.Builder builder = new AlertDialog.Builder(NavigationActivity.this,R.style.dialog);
 		MultiChoiceID.clear();  
 		builder.setIcon(R.drawable.back);
-        builder.setTitle("多项选择");
+        builder.setTitle("单项选择");
         builder.setSingleChoiceItems(nItems, 1,  new DialogInterface. OnClickListener(){
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				line_nitem = nItems[which];
-				choose_route = route[which];
-				Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
+				if(represent_int==1){
+					choose_route = route[which];
+					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
+				}
 			}});
         //设置确定按钮  
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				tv_line.setText(line_nitem);
-				for(int i=1;i<line_size;i++){
-					db.delete(String.valueOf(i));
+				if(represent_int==1){
+					tv_line.setText(line_nitem);
+					for(int i=1;i<line_size;i++){
+						db.delete(String.valueOf(i));
+					}
+					db.save(line_nitem);
+					Message msg = new Message();
+					msg.obj = choose_route;
+					msg.what = Messages.MSG3;
+					navi_handler.sendMessage(msg);  
+				}else if(represent_int==2){
+					et_nav_origin.setText(line_nitem);
+					Log.i("represent_int==2", "20151028");
 				}
-				db.save(line_nitem);
-				Message msg = new Message();
-				msg.obj = choose_route;
-				msg.what = Messages.MSG3;
-				navi_handler.sendMessage(msg);  
+				
 			}
         	
         });
@@ -230,21 +246,23 @@ public class NavigationActivity extends Activity implements OnClickListener,
 	@Override
     protected void onDestroy() {
         super.onPause();
-        
     }
 	
     @Override
     protected void onResume() {
-        super.onResume();
-          Cursor cur = db.loadAll();   
-          StringBuffer sf = new StringBuffer();   
-          cur.moveToFirst();   
-          while (!cur.isAfterLast()) {   
-              sf.append(cur.getString(1)).append("\n");   
-              cur.moveToNext();   
-          }    
-          cur.moveToNext();  
-          tv_line.setText(sf.toString());
+    	super.onResume();
+    	if(represent_int==1){
+    		Cursor cur = db.loadAll();   
+            StringBuffer sf = new StringBuffer();   
+            cur.moveToFirst();   
+            while (!cur.isAfterLast()) {   
+                sf.append(cur.getString(1)).append("\n");   
+                cur.moveToNext();   
+            }    
+            cur.moveToNext();  
+            tv_line.setText(sf.toString());
+    	}
+          
     }
 
     /*************************************************************/
