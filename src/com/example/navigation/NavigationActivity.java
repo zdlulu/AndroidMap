@@ -57,7 +57,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
     RouteLine[] route = null;
     RouteLine choose_route = null;
     DBHelper db;
-    private int line_size=0;
+    private int transit_line_size=0,drive_line_size=0;
     PoiInfo poiinfo_sn,poiinfo_en;
     private int  represent_int =0;
     private boolean flag_en=false,flag_sn=false,flag_driving=false;
@@ -111,6 +111,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
             finish();  
 			break;
 		case R.id.btn_nav_drive:
+			Log.i("dri="+db.getCount(),"20151028");
 			//驾车信息 
 			represent_int = 2;
 			tv_line.setText("");
@@ -178,12 +179,12 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		//歧义解决的时候，进入正常的流程
 		if (drive_result.error == SearchResult.ERRORNO.NO_ERROR) {
 			flag_driving = true;
-			line_size = drive_result.getRouteLines().size();
-			Log.i("line_size="+line_size, "20151028");
+			drive_line_size = drive_result.getRouteLines().size();
+//			Log.i("line_size="+line_size, "20151028");
 			String line_str = "",step_str="";
-			nItems = new String[line_size];
-        	route = new RouteLine[line_size];
-        	for(int i=0;i<line_size;i++){
+			nItems = new String[drive_line_size];
+        	route = new RouteLine[drive_line_size];
+        	for(int i=0;i<drive_line_size;i++){
         		route[i] = drive_result.getRouteLines().get(i);
         		steps_drving = (ArrayList<DrivingStep>) route[i].getAllStep(); 
         		for (DrivingStep step : steps_drving) {
@@ -209,11 +210,11 @@ public class NavigationActivity extends Activity implements OnClickListener,
             return;
         }
         if (transit_result.error == SearchResult.ERRORNO.NO_ERROR) {
-        	line_size = transit_result.getRouteLines().size();
+        	transit_line_size = transit_result.getRouteLines().size();
         	String line_str = "",step_str="";
-        	nItems = new String[line_size];
-        	route = new RouteLine[line_size];
-        	for(int i=0;i<line_size;i++){
+        	nItems = new String[transit_line_size];
+        	route = new RouteLine[transit_line_size];
+        	for(int i=0;i<transit_line_size;i++){
         		route[i] = transit_result.getRouteLines().get(i);
         		steps_transit = (ArrayList<TransitStep>) route[i].getAllStep(); 
         		for (TransitStep step : steps_transit) {
@@ -258,7 +259,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 			public void onClick(DialogInterface dialog, int which) {
 				if(represent_int==1){
 					tv_line.setText(line_nitem);
-					for(int i=1;i<line_size;i++){
+					for(int i=1;i<transit_line_size;i++){
 						db.delete(String.valueOf(i));
 					}
 					db.save(line_nitem);
@@ -278,7 +279,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					if(flag_driving){
 						flag_driving = false;
 						tv_line.setText(line_nitem);
-						for(int i=1;i<line_size;i++){
+						for(int i=1;i<(db.getCount()+1);i++){
 							db.delete(String.valueOf(i));
 						}
 						db.save(line_nitem);

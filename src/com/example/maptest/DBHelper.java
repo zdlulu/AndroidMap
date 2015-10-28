@@ -86,6 +86,13 @@ public class DBHelper {
         return cur;   
     }
     
+    public int getCount(){
+    	int len=0;
+    	Cursor cur=db.query("t_user", new String[]{"_ID","NAME"}, null,null, null, null, null);    
+    	len  = cur.getCount();
+    	return len;
+    }
+    
     public void close(){
     	db.close();
     }
