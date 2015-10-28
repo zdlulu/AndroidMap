@@ -27,6 +27,8 @@ public final class R {
         public static final int button_on=0x7f020002;
         public static final int button_style=0x7f020003;
         public static final int ic_launcher=0x7f020004;
+        public static final int icon_en=0x7f020005;
+        public static final int icon_st=0x7f020006;
     }
     public static final class id {
         public static final int  btn_nav_transit=0x7f08000e;

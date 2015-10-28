@@ -15,6 +15,7 @@ import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.MyLocationConfiguration.LocationMode;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.overlayutil.DrivingRouteOverlay;
 import com.baidu.mapapi.overlayutil.OverlayManager;
 import com.baidu.mapapi.overlayutil.PoiOverlay;
 import com.baidu.mapapi.overlayutil.TransitRouteOverlay;
@@ -28,29 +29,25 @@ import com.baidu.mapapi.search.poi.PoiDetailResult;
 import com.baidu.mapapi.search.poi.PoiDetailSearchOption;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
+import com.baidu.mapapi.search.route.DrivingRouteLine;
 import com.baidu.mapapi.search.route.TransitRouteLine;
 import com.baidu.mapapi.search.sug.OnGetSuggestionResultListener;
 import com.baidu.mapapi.search.sug.SuggestionResult;
 import com.baidu.mapapi.search.sug.SuggestionSearch;
-import com.baidu.mapapi.search.sug.SuggestionSearchOption;
 import com.example.mymaptest.R;
 import com.example.navigation.NavigationActivity;
 import com.example.search.SearchActivity;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.ZoomControls;
 
@@ -298,13 +295,23 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
             break;
             case Messages.MSG3:
             	mBaiduMap.clear();
-            	RouteLine rl = (RouteLine) msg.obj;
-            	TransitRouteOverlay overlay = new MyTransitRouteOverlay(mBaiduMap);
-            	mBaiduMap.setOnMarkerClickListener(overlay);
-                routeOverlay = overlay;
-                overlay.setData((TransitRouteLine) rl);
-                overlay.addToMap();
-                overlay.zoomToSpan();
+            	RouteLine rl_transit = (RouteLine) msg.obj;
+            	TransitRouteOverlay overlay_transit = new MyTransitRouteOverlay(mBaiduMap);
+            	mBaiduMap.setOnMarkerClickListener(overlay_transit);
+                routeOverlay = overlay_transit;
+                overlay_transit.setData((TransitRouteLine) rl_transit);
+                overlay_transit.addToMap();
+                overlay_transit.zoomToSpan();
+            break;
+            case Messages.MSG4:
+            	mBaiduMap.clear();
+            	RouteLine rl_driving = (RouteLine) msg.obj;
+            	DrivingRouteOverlay overlay_driving = new MyDrivingRouteOverlay(mBaiduMap);
+            	mBaiduMap.setOnMarkerClickListener(overlay_driving);
+                routeOverlay = overlay_driving;
+                overlay_driving.setData((DrivingRouteLine) rl_driving);
+                overlay_driving.addToMap();
+                overlay_driving.zoomToSpan();
             break;
             }
         }  
@@ -333,6 +340,27 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	        }
 	    }
 	/*********************************************************************/
+	//¶¨ÖÆRouteOverly
+	 private class MyDrivingRouteOverlay extends DrivingRouteOverlay {
+		 public MyDrivingRouteOverlay(BaiduMap baiduMap) {
+		 	 super(baiduMap);
+		 }	        
+		 @Override
+		 public BitmapDescriptor getStartMarker() {
+		 	 if (useDefaultIcon) {
+				 return BitmapDescriptorFactory.fromResource(R.drawable.icon_st);
+	         }
+	         return null;
+	     }
+	     @Override
+	     public BitmapDescriptor getTerminalMarker() {
+	         if (useDefaultIcon) {
+	        	 return BitmapDescriptorFactory.fromResource(R.drawable.icon_en);
+	         }
+	         return null;
+	     }
+	 }
+	    /*********************************************************************/
 	 @Override
 	 protected void onDestroy() {
 		 super.onDestroy();

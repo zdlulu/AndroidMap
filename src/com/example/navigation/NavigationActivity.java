@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.route.DrivingRouteLine.DrivingStep;
 import com.baidu.mapapi.search.route.DrivingRoutePlanOption;
 import com.baidu.mapapi.search.route.DrivingRouteResult;
 import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
@@ -48,7 +49,8 @@ public class NavigationActivity extends Activity implements OnClickListener,
     RoutePlanSearch mSearch = null;    // 搜索模块，也可去掉地图模块独立使用
     PlanNode stNode,enNode;
     private EditText et_nav_origin,et_nav_destination;
-    ArrayList<TransitStep> steps =null;
+    ArrayList<TransitStep> steps_transit =null;
+    ArrayList<DrivingStep> steps_drving =null;
     ArrayList<Integer>MultiChoiceID = new ArrayList<Integer>();  
     public String[] nItems = null;
     private String line_nitem="";
@@ -58,7 +60,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
     private int line_size=0;
     PoiInfo poiinfo_sn,poiinfo_en;
     private int  represent_int =0;
-    private boolean flag_en=false,flag_sn=false;
+    private boolean flag_en=false,flag_sn=false,flag_driving=false;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -127,13 +129,11 @@ public class NavigationActivity extends Activity implements OnClickListener,
 			represent_int = 3;
 			break;
 		}
-		
 	}
 	
 	/*OnGetRoutePlanResultListener********************************/
 	@Override
 	public void onGetDrivingRouteResult(DrivingRouteResult drive_result) {
-		
 		if (drive_result == null) {
 			Toast.makeText(NavigationActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
 		}
@@ -148,12 +148,12 @@ public class NavigationActivity extends Activity implements OnClickListener,
             	flag_sn = true; 
             	int size_sn = list_sn.size();
                 if(size_sn>0){
-                    Log.i("size_sn="+size_sn, "20151028");
+//                    Log.i("size_sn="+size_sn, "20151028");
                     nItems = new String[size_sn];
                     for(int i=0;i<size_sn;i++){
                     	poiinfo_sn = list_sn.get(i);
                     	nItems[i] = poiinfo_sn.name;
-//                    	Log.i("sn="+poiinfo_sn.name, "20151027");
+//                    	Log.i("sn="+poiinfo_sn.name, "20151028");
                     }
                 }
             }
@@ -161,25 +161,43 @@ public class NavigationActivity extends Activity implements OnClickListener,
             if(list_en!=null){
             	flag_en = true;
             	int size_en = list_en.size();
-            	Log.i("size_en="+size_en, "20151028");
+//            	Log.i("size_en="+size_en, "20151028");
             	nItems = new String[size_en];
                 for(int i=0;i<size_en;i++){
                 	poiinfo_en = list_en.get(i);
                 	nItems[i] = poiinfo_en.name;
-                	Log.i("en="+poiinfo_en.name, "20151027");
+//                	Log.i("en="+poiinfo_en.name, "20151028");
                 }
             }
             /*****************************************************/
             get_item();
 			return;
 	    }
+		//歧义解决的时候，进入正常的流程
 		if (drive_result.error == SearchResult.ERRORNO.NO_ERROR) {
-			Log.i("onGetDrivingRouteResult", "20151028");
+			flag_driving = true;
+			line_size = drive_result.getRouteLines().size();
+			Log.i("line_size="+line_size, "20151028");
+			String line_str = "",step_str="";
+			nItems = new String[line_size];
+        	route = new RouteLine[line_size];
+        	for(int i=0;i<line_size;i++){
+        		route[i] = drive_result.getRouteLines().get(i);
+        		steps_drving = (ArrayList<DrivingStep>) route[i].getAllStep(); 
+        		for (DrivingStep step : steps_drving) {
+        			line_str = line_str+step.getInstructions();
+        		}
+        		step_str = step_str+String.valueOf(i)+line_str+"\n";
+        		nItems[i] = String.valueOf(i)+line_str;
+        		Log.i("line_str","="+String.valueOf(i)+line_str);
+        		line_str = "";
+        	}
+        	get_item();
 		}
 	}
 	@Override
 	public void onGetTransitRouteResult(TransitRouteResult transit_result) {
-		
+		//公交的路线部分
 		if (transit_result == null || transit_result.error != SearchResult.ERRORNO.NO_ERROR) {
             Toast.makeText(NavigationActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
         }
@@ -195,8 +213,8 @@ public class NavigationActivity extends Activity implements OnClickListener,
         	route = new RouteLine[line_size];
         	for(int i=0;i<line_size;i++){
         		route[i] = transit_result.getRouteLines().get(i);
-        		steps = (ArrayList<TransitStep>) route[i].getAllStep(); 
-        		for (TransitStep step : steps) {
+        		steps_transit = (ArrayList<TransitStep>) route[i].getAllStep(); 
+        		for (TransitStep step : steps_transit) {
         			line_str = line_str+step.getInstructions();
         		}
         		step_str = step_str+String.valueOf(i)+line_str+"\n";
@@ -226,6 +244,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					choose_route = route[which];
 					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
 				}
+				if(flag_driving){
+					choose_route = route[which];
+					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
+				}
 			}});
         //设置确定按钮  
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -244,13 +266,21 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					navi_handler.sendMessage(msg);  
 				}else if(represent_int==2){
 					if(flag_sn){
+						flag_sn =false;
 						et_nav_origin.setText(line_nitem);
 					}
 					if(flag_en){
+						flag_en = false;
 						et_nav_destination.setText(line_nitem);
 					}
-					
-					Log.i("represent_int==2", "20151028");
+					if(flag_driving){
+						flag_driving = false;
+						tv_line.setText(line_nitem);
+						Message msg = new Message();
+						msg.obj = choose_route;
+						msg.what = Messages.MSG4;
+						navi_handler.sendMessage(msg);  
+					}
 				}
 				
 			}
