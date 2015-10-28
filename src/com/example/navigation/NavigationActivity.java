@@ -58,6 +58,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
     private int line_size=0;
     PoiInfo poiinfo_sn,poiinfo_en;
     private int  represent_int =0;
+    private boolean flag_en=false,flag_sn=false;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -139,19 +140,41 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		if (drive_result.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
 			//起终点或途经点地址有岐义，通过以下接口获取建议查询信息
 			SuggestAddrInfo mysuggest = drive_result.getSuggestAddrInfo();
+			/******************************************************/
             List<PoiInfo> list_sn = mysuggest.getSuggestStartNode();
-            int size_sn = mysuggest.getSuggestStartNode().size();
-            nItems = new String[size_sn];
-            for(int i=0;i<size_sn;i++){
-            	poiinfo_sn = list_sn.get(i);
-            	nItems[i] = poiinfo_sn.name;
-//            	Log.i("sn="+poiinfo_sn.name, "20151027");
+            List<PoiInfo> list_en = mysuggest.getSuggestEndNode();
+            /*起点有歧义的时候*******************************************/
+            if(list_sn!=null){
+            	flag_sn = true; 
+            	int size_sn = list_sn.size();
+                if(size_sn>0){
+                    Log.i("size_sn="+size_sn, "20151028");
+                    nItems = new String[size_sn];
+                    for(int i=0;i<size_sn;i++){
+                    	poiinfo_sn = list_sn.get(i);
+                    	nItems[i] = poiinfo_sn.name;
+//                    	Log.i("sn="+poiinfo_sn.name, "20151027");
+                    }
+                }
             }
+            /*终点有歧义的时候*******************************************/
+            if(list_en!=null){
+            	flag_en = true;
+            	int size_en = list_en.size();
+            	Log.i("size_en="+size_en, "20151028");
+            	nItems = new String[size_en];
+                for(int i=0;i<size_en;i++){
+                	poiinfo_en = list_en.get(i);
+                	nItems[i] = poiinfo_en.name;
+                	Log.i("en="+poiinfo_en.name, "20151027");
+                }
+            }
+            /*****************************************************/
             get_item();
 			return;
 	    }
 		if (drive_result.error == SearchResult.ERRORNO.NO_ERROR) {
-			Log.i("onGetDrivingRouteResult", "20151027");
+			Log.i("onGetDrivingRouteResult", "20151028");
 		}
 	}
 	@Override
@@ -220,7 +243,13 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					msg.what = Messages.MSG3;
 					navi_handler.sendMessage(msg);  
 				}else if(represent_int==2){
-					et_nav_origin.setText(line_nitem);
+					if(flag_sn){
+						et_nav_origin.setText(line_nitem);
+					}
+					if(flag_en){
+						et_nav_destination.setText(line_nitem);
+					}
+					
 					Log.i("represent_int==2", "20151028");
 				}
 				
