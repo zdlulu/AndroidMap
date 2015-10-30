@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.RouteLine;
 import com.baidu.mapapi.search.core.SearchResult;
@@ -28,6 +27,8 @@ import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
 import com.baidu.mapapi.search.route.PlanNode;
 import com.baidu.mapapi.search.route.RoutePlanSearch;
 import com.baidu.mapapi.search.route.SuggestAddrInfo;
+import com.baidu.mapapi.search.route.WalkingRouteLine.WalkingStep;
+import com.baidu.mapapi.search.route.WalkingRoutePlanOption;
 import com.baidu.mapapi.search.route.TransitRouteLine.TransitStep;
 import com.baidu.mapapi.search.route.TransitRoutePlanOption;
 import com.baidu.mapapi.search.route.TransitRouteResult;
@@ -51,16 +52,17 @@ public class NavigationActivity extends Activity implements OnClickListener,
     private EditText et_nav_origin,et_nav_destination;
     ArrayList<TransitStep> steps_transit =null;
     ArrayList<DrivingStep> steps_drving =null;
+    ArrayList<WalkingStep> steps_walking =null;
     ArrayList<Integer>MultiChoiceID = new ArrayList<Integer>();  
     public String[] nItems = null;
     private String line_nitem="";
     RouteLine[] route = null;
     RouteLine choose_route = null;
     DBHelper db;
-    private int transit_line_size=0,drive_line_size=0;
+    private int transit_line_size=0,drive_line_size=0,walk_line_size=0;
     PoiInfo poiinfo_sn,poiinfo_en;
     private int  represent_int =0;
-    private boolean flag_en=false,flag_sn=false,flag_driving=false;
+    private boolean flag_en=false,flag_sn=false,flag_driving=false,flag_walking=false;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +113,6 @@ public class NavigationActivity extends Activity implements OnClickListener,
             finish();  
 			break;
 		case R.id.btn_nav_drive:
-			Log.i("dri="+db.getCount(),"20151028");
 			//驾车信息 
 			represent_int = 2;
 			tv_line.setText("");
@@ -130,11 +131,45 @@ public class NavigationActivity extends Activity implements OnClickListener,
 			break;
 		case R.id.btn_nav_walk:
 			represent_int = 3;
+			mSearch.walkingSearch((new WalkingRoutePlanOption())
+                    .from(stNode)
+                    .to(enNode));
 			break;
 		}
 	}
 	
 	/*OnGetRoutePlanResultListener********************************/
+	@Override
+	public void onGetTransitRouteResult(TransitRouteResult transit_result) {
+		//公交的路线部分
+		if (transit_result == null || transit_result.error != SearchResult.ERRORNO.NO_ERROR) {
+            Toast.makeText(NavigationActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
+        }
+        if (transit_result.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
+            //起终点或途经点地址有岐义，通过以下接口获取建议查询信息
+//        	transit_result.getSuggestAddrInfo();
+        	Toast.makeText(NavigationActivity.this, "抱歉，有歧义", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (transit_result.error == SearchResult.ERRORNO.NO_ERROR) {
+        	transit_line_size = transit_result.getRouteLines().size();
+        	String line_str = "",step_str="";
+        	nItems = new String[transit_line_size];
+        	route = new RouteLine[transit_line_size];
+        	for(int i=0;i<transit_line_size;i++){
+        		route[i] = transit_result.getRouteLines().get(i);
+        		steps_transit = (ArrayList<TransitStep>) route[i].getAllStep(); 
+        		for (TransitStep step : steps_transit) {
+        			line_str = line_str+step.getInstructions();
+        		}
+        		step_str = step_str+String.valueOf(i)+line_str+"\n";
+        		nItems[i] = String.valueOf(i)+line_str;
+        		Log.i("line_str","="+String.valueOf(i)+line_str);
+        		line_str = "";
+        	}
+        	get_item();
+        }
+	}
 	@Override
 	public void onGetDrivingRouteResult(DrivingRouteResult drive_result) {
 		if (drive_result == null) {
@@ -199,25 +234,58 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		}
 	}
 	@Override
-	public void onGetTransitRouteResult(TransitRouteResult transit_result) {
-		//公交的路线部分
-		if (transit_result == null || transit_result.error != SearchResult.ERRORNO.NO_ERROR) {
+	public void onGetWalkingRouteResult(WalkingRouteResult walk_result) {
+		if (walk_result == null) {
+			Log.i("null", "20151028");
             Toast.makeText(NavigationActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
         }
-        if (transit_result.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
+        if (walk_result.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
+        	
             //起终点或途经点地址有岐义，通过以下接口获取建议查询信息
-        	transit_result.getSuggestAddrInfo();
+        	//起终点或途经点地址有岐义，通过以下接口获取建议查询信息
+			SuggestAddrInfo walk_mysuggest = walk_result.getSuggestAddrInfo();
+			List<PoiInfo> list_sn = walk_mysuggest.getSuggestStartNode();
+	        List<PoiInfo> list_en = walk_mysuggest.getSuggestEndNode();
+	        /******************************************************/
+	        if(list_sn!=null){
+	        	flag_sn = true; 
+            	int size_sn = list_sn.size();
+                if(size_sn>0){
+//                    Log.i("size_sn="+size_sn, "20151028");
+                    nItems = new String[size_sn];
+                    for(int i=0;i<size_sn;i++){
+                    	poiinfo_sn = list_sn.get(i);
+                    	nItems[i] = poiinfo_sn.name;
+//                    	Log.i("sn="+poiinfo_sn.name, "20151028");
+                    }
+                }
+	        }
+	        if(list_en!=null){
+	        	flag_en = true;
+            	int size_en = list_en.size();
+//            	Log.i("size_en="+size_en, "20151028");
+            	nItems = new String[size_en];
+                for(int i=0;i<size_en;i++){
+                	poiinfo_en = list_en.get(i);
+                	nItems[i] = poiinfo_en.name;
+//                	Log.i("en="+poiinfo_en.name, "20151028");
+                }
+	        }
+	        /******************************************************/
+	        get_item();
             return;
         }
-        if (transit_result.error == SearchResult.ERRORNO.NO_ERROR) {
-        	transit_line_size = transit_result.getRouteLines().size();
-        	String line_str = "",step_str="";
-        	nItems = new String[transit_line_size];
-        	route = new RouteLine[transit_line_size];
-        	for(int i=0;i<transit_line_size;i++){
-        		route[i] = transit_result.getRouteLines().get(i);
-        		steps_transit = (ArrayList<TransitStep>) route[i].getAllStep(); 
-        		for (TransitStep step : steps_transit) {
+        if (walk_result.error == SearchResult.ERRORNO.NO_ERROR) {
+        	flag_walking = true;
+        	walk_line_size = walk_result.getRouteLines().size();
+//			Log.i("line_size="+line_size, "20151030");
+			String line_str = "",step_str="";
+			nItems = new String[walk_line_size];
+        	route = new RouteLine[walk_line_size];
+        	for(int i=0;i<walk_line_size;i++){
+        		route[i] = walk_result.getRouteLines().get(i);
+        		steps_walking = (ArrayList<WalkingStep>) route[i].getAllStep(); 
+        		for (WalkingStep step : steps_walking) {
         			line_str = line_str+step.getInstructions();
         		}
         		step_str = step_str+String.valueOf(i)+line_str+"\n";
@@ -226,10 +294,8 @@ public class NavigationActivity extends Activity implements OnClickListener,
         		line_str = "";
         	}
         	get_item();
+        	Toast.makeText(NavigationActivity.this, "抱歉，路线无歧义", Toast.LENGTH_SHORT).show();
         }
-	}
-	@Override
-	public void onGetWalkingRouteResult(WalkingRouteResult walk_result) {
 		
 	}
 	/*************************************************************/
@@ -251,6 +317,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					choose_route = route[which];
 					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
 				}
+				if(flag_walking){
+					choose_route = route[which];
+					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
+				}
 			}});
         //设置确定按钮  
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -259,8 +329,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 			public void onClick(DialogInterface dialog, int which) {
 				if(represent_int==1){
 					tv_line.setText(line_nitem);
-					for(int i=1;i<transit_line_size;i++){
+					int i=0;
+					while(db.getCount()!=0){
 						db.delete(String.valueOf(i));
+						i++;
 					}
 					db.save(line_nitem);
 					Message msg = new Message();
@@ -279,13 +351,38 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					if(flag_driving){
 						flag_driving = false;
 						tv_line.setText(line_nitem);
-						for(int i=1;i<(db.getCount()+1);i++){
+						int i=1;
+						while(db.getCount()!=0){
 							db.delete(String.valueOf(i));
+							i++;
 						}
 						db.save(line_nitem);
 						Message msg = new Message();
 						msg.obj = choose_route;
 						msg.what = Messages.MSG4;
+						navi_handler.sendMessage(msg);  
+					}
+				}else if(represent_int==3){
+					if(flag_sn){
+						flag_sn =false;
+						et_nav_origin.setText(line_nitem);
+					}
+					if(flag_en){
+						flag_en = false;
+						et_nav_destination.setText(line_nitem);
+					}
+					if(flag_walking){
+						flag_walking = false;
+						tv_line.setText(line_nitem);
+						int i=1;
+						while(db.getCount()!=0){
+							db.delete(String.valueOf(i));
+							i++;
+						}
+						db.save(line_nitem);
+						Message msg = new Message();
+						msg.obj = choose_route;
+						msg.what = Messages.MSG5;
 						navi_handler.sendMessage(msg);  
 					}
 				}

@@ -19,6 +19,7 @@ import com.baidu.mapapi.overlayutil.DrivingRouteOverlay;
 import com.baidu.mapapi.overlayutil.OverlayManager;
 import com.baidu.mapapi.overlayutil.PoiOverlay;
 import com.baidu.mapapi.overlayutil.TransitRouteOverlay;
+import com.baidu.mapapi.overlayutil.WalkingRouteOverlay;
 import com.baidu.mapapi.search.core.CityInfo;
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.RouteLine;
@@ -31,6 +32,7 @@ import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
 import com.baidu.mapapi.search.route.DrivingRouteLine;
 import com.baidu.mapapi.search.route.TransitRouteLine;
+import com.baidu.mapapi.search.route.WalkingRouteLine;
 import com.baidu.mapapi.search.sug.OnGetSuggestionResultListener;
 import com.baidu.mapapi.search.sug.SuggestionResult;
 import com.baidu.mapapi.search.sug.SuggestionSearch;
@@ -313,6 +315,16 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
                 overlay_driving.addToMap();
                 overlay_driving.zoomToSpan();
             break;
+            case Messages.MSG5:
+            	mBaiduMap.clear();
+            	RouteLine rl_walking = (RouteLine) msg.obj;
+            	WalkingRouteOverlay overlay_walking = new MyWalkingRouteOverlay(mBaiduMap);
+            	mBaiduMap.setOnMarkerClickListener(overlay_walking);
+                routeOverlay = overlay_walking;
+                overlay_walking.setData((WalkingRouteLine) rl_walking);
+                overlay_walking.addToMap();
+                overlay_walking.zoomToSpan();
+            	break;
             }
         }  
     }  
@@ -360,7 +372,30 @@ public class MainActivity extends Activity implements OnGetPoiSearchResultListen
 	         return null;
 	     }
 	 }
-	    /*********************************************************************/
+	 /*********************************************************************/
+	 private class MyWalkingRouteOverlay extends WalkingRouteOverlay {
+
+	        public MyWalkingRouteOverlay(BaiduMap baiduMap) {
+	            super(baiduMap);
+	        }
+
+	        @Override
+	        public BitmapDescriptor getStartMarker() {
+	            if (useDefaultIcon) {
+	                return BitmapDescriptorFactory.fromResource(R.drawable.icon_st);
+	            }
+	            return null;
+	        }
+
+	        @Override
+	        public BitmapDescriptor getTerminalMarker() {
+	            if (useDefaultIcon) {
+	                return BitmapDescriptorFactory.fromResource(R.drawable.icon_en);
+	            }
+	            return null;
+	        }
+	    }
+	 /*********************************************************************/
 	 @Override
 	 protected void onDestroy() {
 		 super.onDestroy();
