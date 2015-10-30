@@ -63,6 +63,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
     PoiInfo poiinfo_sn,poiinfo_en;
     private int  represent_int =0;
     private boolean flag_en=false,flag_sn=false,flag_driving=false,flag_walking=false;
+    private boolean flag_transit=false;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -92,8 +93,8 @@ public class NavigationActivity extends Activity implements OnClickListener,
 		et_nav_origin = (EditText) findViewById(R.id.et_nav_origin);;
 		et_nav_destination = (EditText) findViewById(R.id.et_nav_destination);
 		tv_line = (TextView) findViewById(R.id.tv_line);
-		et_nav_origin.setText("金刚桥");
-		et_nav_destination.setText("滨江道");
+		et_nav_origin.setText("雅安西里");
+		et_nav_destination.setText("金刚");
 	}
 
 	@Override
@@ -131,6 +132,7 @@ public class NavigationActivity extends Activity implements OnClickListener,
 			break;
 		case R.id.btn_nav_walk:
 			represent_int = 3;
+			tv_line.setText("");
 			mSearch.walkingSearch((new WalkingRoutePlanOption())
                     .from(stNode)
                     .to(enNode));
@@ -142,16 +144,49 @@ public class NavigationActivity extends Activity implements OnClickListener,
 	@Override
 	public void onGetTransitRouteResult(TransitRouteResult transit_result) {
 		//公交的路线部分
-		if (transit_result == null || transit_result.error != SearchResult.ERRORNO.NO_ERROR) {
+		if (transit_result == null) {
             Toast.makeText(NavigationActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
         }
         if (transit_result.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
             //起终点或途经点地址有岐义，通过以下接口获取建议查询信息
-//        	transit_result.getSuggestAddrInfo();
+        	/**********************************************/
+        	SuggestAddrInfo mysuggest = transit_result.getSuggestAddrInfo();
+        	List<PoiInfo> list_sn = mysuggest.getSuggestStartNode();
+            List<PoiInfo> list_en = mysuggest.getSuggestEndNode();
+            /*起点有歧义的时候*******************************************/
+            if(list_sn!=null){
+            	flag_sn = true; 
+            	int size_sn = list_sn.size();
+                if(size_sn>0){
+//                    Log.i("size_sn="+size_sn, "20151028");
+                    nItems = new String[size_sn];
+                    for(int i=0;i<size_sn;i++){
+                    	poiinfo_sn = list_sn.get(i);
+                    	nItems[i] = poiinfo_sn.name;
+//                    	Log.i("sn="+poiinfo_sn.name, "20151028");
+                    }
+                }
+            }
+            /*终点有歧义的时候*******************************************/
+            if(list_en!=null){
+            	flag_en = true;
+            	int size_en = list_en.size();
+//            	Log.i("size_en="+size_en, "20151028");
+            	nItems = new String[size_en];
+                for(int i=0;i<size_en;i++){
+                	poiinfo_en = list_en.get(i);
+                	nItems[i] = poiinfo_en.name;
+//                	Log.i("en="+poiinfo_en.name, "20151028");
+                }
+            }
+        	/**********************************************/
         	Toast.makeText(NavigationActivity.this, "抱歉，有歧义", Toast.LENGTH_SHORT).show();
+        	get_item();
             return;
         }
         if (transit_result.error == SearchResult.ERRORNO.NO_ERROR) {
+        	flag_transit = true;
+        	Toast.makeText(NavigationActivity.this, "*****", Toast.LENGTH_SHORT).show();
         	transit_line_size = transit_result.getRouteLines().size();
         	String line_str = "",step_str="";
         	nItems = new String[transit_line_size];
@@ -294,7 +329,6 @@ public class NavigationActivity extends Activity implements OnClickListener,
         		line_str = "";
         	}
         	get_item();
-        	Toast.makeText(NavigationActivity.this, "抱歉，路线无歧义", Toast.LENGTH_SHORT).show();
         }
 		
 	}
@@ -309,10 +343,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				line_nitem = nItems[which];
-				if(represent_int==1){
-					choose_route = route[which];
-					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
-				}
+//				if(represent_int==1){
+//					choose_route = route[which];
+//					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
+//				}
 				if(flag_driving){
 					choose_route = route[which];
 					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
@@ -321,6 +355,10 @@ public class NavigationActivity extends Activity implements OnClickListener,
 					choose_route = route[which];
 					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();  
 				}
+				if(flag_transit){
+					choose_route = route[which];
+					Toast.makeText(getApplicationContext(), "你选择的ID为："+which, Toast.LENGTH_SHORT).show();
+				}
 			}});
         //设置确定按钮  
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -328,17 +366,39 @@ public class NavigationActivity extends Activity implements OnClickListener,
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if(represent_int==1){
-					tv_line.setText(line_nitem);
-					int i=0;
-					while(db.getCount()!=0){
-						db.delete(String.valueOf(i));
-						i++;
+					if(flag_sn){
+						flag_sn =false;
+						et_nav_origin.setText(line_nitem);
 					}
-					db.save(line_nitem);
-					Message msg = new Message();
-					msg.obj = choose_route;
-					msg.what = Messages.MSG3;
-					navi_handler.sendMessage(msg);  
+					if(flag_en){
+						flag_en = false;
+						et_nav_destination.setText(line_nitem);
+					}
+					if(flag_transit){
+						flag_transit = false;
+						tv_line.setText(line_nitem);
+						int i=1;
+						while(db.getCount()!=0){
+							db.delete(String.valueOf(i));
+							i++;
+						}
+						db.save(line_nitem);
+						Message msg = new Message();
+						msg.obj = choose_route;
+						msg.what = Messages.MSG3;
+						navi_handler.sendMessage(msg);  
+					}
+//					tv_line.setText(line_nitem);
+//					int i=0;
+//					while(db.getCount()!=0){
+//						db.delete(String.valueOf(i));
+//						i++;
+//					}
+//					db.save(line_nitem);
+//					Message msg = new Message();
+//					msg.obj = choose_route;
+//					msg.what = Messages.MSG3;
+//					navi_handler.sendMessage(msg);  
 				}else if(represent_int==2){
 					if(flag_sn){
 						flag_sn =false;
